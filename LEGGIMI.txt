@@ -1,0 +1,41 @@
+﻿ArcFlow Ore – app per il telefono (Android) · versione 1.0.0
+Studio FGA – Francesco Guerra Architetto
+
+Registra il foglio ore fuori studio, anche senza connessione, e invia le ore ad ArcFlow tramite pCloud.
+Richiede ArcFlow R26 (v1.24.0) o successiva sul PC.
+
+A) PUBBLICAZIONE (una volta sola, circa 10 minuti) – GitHub Pages, gratuito
+ 1. Crea un account gratuito su https://github.com (se non ce l'hai).
+ 2. In alto a destra "+" › New repository. Nome: arcflow-mobile · Public · Create repository.
+    (Il repository contiene solo il programma: nessun dato dello studio viene pubblicato.)
+ 3. Nella pagina del repository: "uploading an existing file". Trascina TUTTI i file di questa cartella
+    (index.html, manifest.webmanifest, sw.js, le immagini .png e questo file) e premi "Commit changes".
+ 4. Settings › Pages › Build and deployment › Source: "Deploy from a branch"; Branch: main, cartella / (root) › Save.
+    Dopo 1–2 minuti l'app è all'indirizzo  https://NOMEUTENTE.github.io/arcflow-mobile/
+
+B) INSTALLAZIONE SUL TELEFONO
+ 1. In ArcFlow sul PC: Impostazioni › App sul telefono › incolla l'indirizzo › Salva indirizzo: compare un codice QR.
+ 2. Sul telefono inquadra il QR con la fotocamera, apri il link con Chrome e scegli ⋮ › "Installa app"
+    (o "Aggiungi a schermata Home"). Compare l'icona ArcFlow Ore.
+ 3. Installa l'app pCloud sul telefono e accedi con lo stesso account del PC.
+ 4. In ArcFlow Ore: "Carica elenco commesse" › nel selettore dei file scegli pCloud ›
+    01_LAVORO › 01_CONTABILITA' › GESTIONALE › mobile › arcflow_commesse_mobile.json
+    (se pCloud non compare: menu ☰ del selettore › pCloud). Scegli chi sei (la risorsa a cui intestare le ore).
+
+C) USO
+ - Registra: commessa (con ricerca per codice, nome o cliente), data oppure intervallo di date, ore e minuti,
+   tipologia, attività. Il cronometro conta il tempo anche se chiudi l'app (arrotondato ai 5 minuti).
+ - Ore: elenco per mese con totali; ogni registrazione si può modificare o eliminare.
+ - Invia › "Invia a pCloud" › scegli pCloud › cartella GESTIONALE/mobile › Carica.
+   ArcFlow sul PC importa le ore entro un minuto da quando pCloud ha sincronizzato il file (notifica sul PC);
+   le ore già importate non vengono duplicate; una registrazione modificata dopo l'invio si reinvia e si aggiorna.
+ - Quando in ArcFlow cambiano le commesse, ricarica l'elenco: Impostazioni › Aggiorna elenco commesse.
+ - Le ore inviate da più di 60 giorni vengono tolte dal telefono (restano in ArcFlow).
+
+D) COLLABORATORI
+ In ArcFlow: Impostazioni › App sul telefono › scegli il collaboratore › "Scarica file elenco": il file contiene solo le
+ sue commesse e intesta le ore a lui. Inviaglielo (email, WhatsApp…): lo carica in ArcFlow Ore e ti rimanda i file
+ delle ore, che importi con "Importa un file del telefono…" (oppure li salvi tu nella cartella mobile).
+
+E) AGGIORNAMENTI DELL'APP
+ Carica i nuovi file nello stesso repository GitHub: il telefono si aggiorna da solo alla prima apertura con rete.

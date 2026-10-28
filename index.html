@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ArcFlow Ore</title>
+<meta name="description" content="Foglio ore di ArcFlow per il telefono: registra le ore fuori studio e inviale ad ArcFlow tramite pCloud.">
+<meta name="theme-color" content="#1d2118">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{ --bg:#f4f3ee; --card:#fff; --ink:#1d2118; --mut:#6c7064; --line:#e3e2da; --acc:#9ab84a; --acc2:#55792a; --accbg:#eef4dc; --bad:#c0392b; --badbg:#fdf1f0; --bar:#1d2118; --barink:#f4f3ee; color-scheme:light; }
+@media (prefers-color-scheme: dark){ :root{ --bg:#14170f; --card:#1f231a; --ink:#ecebe4; --mut:#a3a79a; --line:#34392c; --acc:#a6c34f; --acc2:#c3dc7a; --accbg:#2b3420; --bad:#ff8a7a; --badbg:#3a2420; --bar:#0d0f0a; --barink:#ecebe4; color-scheme:dark; } }
+*{ box-sizing:border-box; }
+html,body{ margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-text-size-adjust:100%; }
+header{ position:sticky; top:0; z-index:5; background:var(--bar); color:var(--barink); padding:calc(10px + env(safe-area-inset-top)) 16px 10px; display:flex; align-items:center; gap:10px; }
+header img{ width:34px; height:34px; border-radius:8px; background:#fff; padding:3px; }
+header b{ font-size:17px; } header small{ display:block; opacity:.75; font-size:12.5px; }
+header .sp{ flex:1; }
+.badge{ background:var(--acc); color:#1d2118; border-radius:99px; padding:2px 9px; font-weight:700; font-size:13px; }
+main{ padding:12px 16px calc(96px + env(safe-area-inset-bottom)); max-width:640px; margin:0 auto; }
+.card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin:0 0 12px; }
+h2{ font-size:16px; margin:0 0 10px; }
+label{ display:block; margin:0 0 10px; } label>span{ display:block; font-size:13px; color:var(--mut); margin:0 0 4px; }
+input,select,textarea,button{ font:inherit; color:inherit; }
+input,select,textarea{ width:100%; min-height:44px; border:1px solid var(--line); border-radius:10px; padding:9px 11px; background:var(--card); }
+textarea{ min-height:70px; resize:vertical; }
+input:focus,select:focus,textarea:focus{ outline:2px solid var(--acc); outline-offset:0; border-color:var(--acc); }
+.row{ display:flex; gap:10px; } .row>*{ flex:1; min-width:0; }
+button{ min-height:44px; border-radius:10px; border:1px solid var(--line); background:var(--card); padding:9px 14px; cursor:pointer; }
+button.pri{ background:var(--acc); border-color:var(--acc); color:#1d2118; font-weight:700; }
+button.big{ width:100%; font-size:17px; min-height:52px; }
+button.danger{ color:var(--bad); }
+button.sm{ min-height:36px; padding:5px 10px; font-size:14px; }
+.chips{ display:flex; gap:6px; flex-wrap:wrap; margin:-2px 0 10px; } .chips button{ min-height:36px; padding:4px 12px; border-radius:99px; font-size:14px; }
+.note{ color:var(--mut); font-size:13.5px; }
+.err{ color:var(--bad); font-size:14px; }
+.info{ background:var(--accbg); border-radius:10px; padding:9px 11px; font-size:14px; margin:0 0 10px; }
+.toggle{ display:flex; align-items:center; gap:10px; margin:0 0 10px; min-height:40px; } .toggle input{ width:22px; min-height:22px; height:22px; accent-color:var(--acc2); }
+.list .it{ border-top:1px solid var(--line); padding:10px 0; display:flex; gap:10px; align-items:flex-start; } .list .it:first-child{ border-top:0; }
+.it .g{ flex:1; min-width:0; } .it .h{ font-weight:700; white-space:nowrap; } .it .t{ font-weight:600; } .it .d{ font-size:14px; color:var(--mut); overflow-wrap:anywhere; }
+.pill{ display:inline-block; font-size:12px; border-radius:99px; padding:1px 8px; background:var(--line); color:var(--ink); } .pill.ok{ background:var(--accbg); color:var(--acc2); } .pill.wait{ background:#fff1d6; color:#8a5a00; }
+@media (prefers-color-scheme: dark){ .pill.wait{ background:#3b3016; color:#f0c46a; } }
+nav{ position:fixed; left:0; right:0; bottom:0; z-index:5; background:var(--card); border-top:1px solid var(--line); display:flex; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); }
+nav button{ flex:1; border:0; background:none; font-size:12.5px; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--mut); min-height:52px; }
+nav button i{ font-style:normal; font-size:21px; line-height:1; } nav button.on{ color:var(--acc2); font-weight:700; }
+.crono{ display:flex; align-items:center; gap:10px; } .crono b{ font-size:26px; font-variant-numeric:tabular-nums; flex:1; }
+.empty{ text-align:center; color:var(--mut); padding:18px 6px; }
+#toast{ position:fixed; left:16px; right:16px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:9; background:#1d2118; color:#f4f3ee; padding:12px 14px; border-radius:12px; font-size:15px; opacity:0; transform:translateY(10px); transition:.2s; pointer-events:none; max-width:600px; margin:0 auto; }
+#toast.on{ opacity:1; transform:none; }
+dialog{ border:0; border-radius:16px; padding:0; width:min(560px, calc(100vw - 24px)); background:var(--card); color:var(--ink); }
+dialog::backdrop{ background:rgba(0,0,0,.45); }
+dialog .in{ padding:16px; max-height:80vh; overflow:auto; } dialog .bt{ display:flex; gap:8px; justify-content:flex-end; padding:0 16px 16px; flex-wrap:wrap; }
+.sum{ display:flex; justify-content:space-between; font-weight:700; padding-top:8px; border-top:1px solid var(--line); margin-top:4px; }
+.steps{ margin:0; padding-left:20px; } .steps li{ margin:0 0 6px; }
+code{ background:var(--accbg); padding:0 4px; border-radius:4px; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+<header><img src="logo.png" alt=""><div><b>ArcFlow Ore</b><small id="hSub">Foglio ore fuori studio</small></div><span class="sp"></span><span class="badge" id="hBadge" hidden></span></header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-tab="nuova" class="on"><i>＋</i>Registra</button>
+  <button data-tab="elenco"><i>☰</i>Ore</button>
+  <button data-tab="invia"><i>⇪</i>Invia</button>
+  <button data-tab="impo"><i>⚙</i>Impostazioni</button>
+</nav>
+<div id="toast"></div>
+<dialog id="dlg"><div class="in" id="dlgBody"></div><div class="bt" id="dlgBt"></div></dialog>
+<input type="file" id="fileCommesse" hidden>
+<script>
+'use strict';
+/* ArcFlow Ore – app per il telefono (PWA). I dati restano sul telefono: elenco commesse caricato dal file creato da ArcFlow,
+   ore inviate ad ArcFlow con un file salvato nella cartella GESTIONALE/mobile di pCloud. */
+const VER='1.0.0';
+const LS='arcflowMobile_v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const fdate=s=>s?s.split('-').reverse().join('/'):'';
+const hm=h=>{ const m=Math.round((+h||0)*60); return `${pad(Math.floor(m/60))}.${pad(m%60)}`; };
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const norm=s=>String(s??'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+// calendario lavorativo (uguale ad ArcFlow)
+const FEST=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'];
+function pasqua(y){ const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),gi=((h+l-7*m+114)%31)+1; return new Date(Date.UTC(y,mo-1,gi)).toISOString().slice(0,10); }
+const dU=s=>new Date(s+'T00:00:00Z'); const dPiu=(s,n)=>{ const t=dU(s); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10); };
+const festivo=s=>FEST.includes(s.slice(5)) || s===dPiu(pasqua(+s.slice(0,4)),1);
+const feriale=s=>{ const w=dU(s).getUTCDay(); return w!==0 && w!==6 && !festivo(s); };
+function giorni(a,b,distr){ const T=[]; if(!a||!b||b<a) return T; for(let d=a; d<=b && T.length<=366; d=dPiu(d,1)) T.push(d); const F=distr==='tutti'?T:T.filter(feriale); return F.length?F:T; }
+const ggLbl=(n,tutti)=>`${n} ${tutti?(n===1?'giorno':'giorni'):(n===1?'giorno lavorativo':'giorni lavorativi')}`;
+const TIPI_DEF=['Progettazione','Disegno e restituzione grafica','Rilievo','Pratiche edilizie e catastali','Direzione lavori','Sopralluogo','Riunione / incontro','Computo e contabilità lavori','Relazioni e documenti','Render e grafica','Viaggio','Amministrazione','Altro'];
+
+// ---------------- stato ----------------
+let ST=carica();
+function carica(){ try{ const s=JSON.parse(localStorage.getItem(LS)||'null'); if(s && Array.isArray(s.ore)) return s; }catch(e){} return {cfg:{}, elenco:null, ore:[], crono:null, recenti:[]}; }
+function salva(){ try{ localStorage.setItem(LS, JSON.stringify(ST)); return true; }catch(e){ toast('Memoria del telefono piena: invia e pulisci le ore già inviate.'); return false; } }
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+let TAB='nuova', EDIT=null, FORM=null;
+const commesse=()=>ST.elenco?.commesse||[];
+const comm=id=>commesse().find(c=>c.id===id);
+const tipi=()=>ST.elenco?.tipologie?.length?ST.elenco.tipologie:TIPI_DEF;
+const risorse=()=>ST.elenco?.risorse||[];
+const risorsa=()=>ST.cfg.risorsa||null;
+const daInviare=()=>ST.ore.filter(o=>!o.inviata || (o.mod>o.inviata));
+function toast(m,ms=3200){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),ms); }
+function dialogo(html, bottoni){ return new Promise(res=>{ const d=$('#dlg'); $('#dlgBody').innerHTML=html; const bt=$('#dlgBt'); bt.innerHTML='';
+  bottoni.forEach(([lbl,val,cls])=>{ const b=document.createElement('button'); b.textContent=lbl; if(cls) b.className=cls; b.onclick=()=>{ d.close(); res(val); }; bt.appendChild(b); });
+  d.onclose=()=>res(d.returnValue==='x'?null:undefined); d.showModal(); }); }
+function oreErr(o){ if(!o.prevId && !o.cod) return 'Scegli la commessa'; if(!o.data) return 'Indica la data'; if(!(o.ore>0)) return 'Indica le ore';
+  if(o.dataFine && o.dataFine!==o.data){ if(o.dataFine<o.data) return 'La data di fine è precedente alla data di inizio'; if(giorni(o.data,o.dataFine,'tutti').length>366) return 'Intervallo troppo lungo (al massimo un anno)';
+    const g=giorni(o.data,o.dataFine,o.distr).length; if(o.ore/g>24) return `Più di 24 h al giorno (${hm(o.ore)} h su ${ggLbl(g,o.distr==='tutti')})`; }
+  else if(o.ore>24) return 'Più di 24 ore in un giorno: usa un intervallo di date'; return ''; }
+
+// ---------------- render ----------------
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===TAB));
+  const n=daInviare().length; const hb=$('#hBadge'); hb.hidden=!n; hb.textContent=n+' da inviare';
+  $('#hSub').textContent = risorsa() ? risorsa().nome : 'Foglio ore fuori studio';
+  const m=$('#main');
+  if(!ST.elenco && TAB!=='impo') { m.innerHTML=vBenvenuto(); return; }
+  m.innerHTML = TAB==='nuova'?vNuova():TAB==='elenco'?vElenco():TAB==='invia'?vInvia():vImpo();
+  if(TAB==='nuova') initForm();
+}
+function vBenvenuto(){ return `<div class="card"><h2>Benvenuto in ArcFlow Ore</h2>
+  <p>Per iniziare carica l’<b>elenco delle commesse</b> creato da ArcFlow sul PC:</p>
+  <ol class="steps"><li>Sul telefono apri il file <code>arcflow_commesse_mobile.json</code> dalla cartella <code>GESTIONALE/mobile</code> di pCloud con il pulsante qui sotto (nel selettore dei file scegli <b>pCloud</b>).</li>
+  <li>Scegli chi sei (la risorsa a cui intestare le ore).</li></ol>
+  <button class="pri big" data-act="carica">Carica elenco commesse</button>
+  <p class="note" style="margin-top:12px">Il file viene creato e aggiornato da ArcFlow (Impostazioni › App sul telefono). I dati restano solo su questo telefono finché non li invii.</p></div>`; }
+
+function opzCommesse(sel){ const rec=(ST.recenti||[]).map(comm).filter(Boolean); const resto=commesse().filter(c=>!rec.includes(c));
+  const o=c=>`<option value="${esc(c.id)}"${c.id===sel?' selected':''}>${esc(c.cod)}${c.ogg?' – '+esc(c.ogg):''}</option>`;
+  return `<option value="">— scegli la commessa —</option>${rec.length?`<optgroup label="Usate di recente">${rec.map(o).join('')}</optgroup><optgroup label="Tutte le commesse">`:''}${resto.map(o).join('')}${rec.length?'</optgroup>':''}`; }
+function vNuova(){ const o=EDIT ? ST.ore.find(x=>x.id===EDIT) : null; const v=o||FORM||{data:today(), distr:'lav'}; const h=Math.floor((+v.ore||0)), mi=Math.round(((+v.ore||0)-h)*60);
+  const cr=ST.crono; const intv=!!(v.intv || (v.dataFine && v.dataFine!==v.data));
+  return `${!o?`<div class="card"><h2>Cronometro</h2><div class="crono"><b id="cronoT">${cr?'00:00:00':'—'}</b>${cr?'<button class="pri" data-act="crono-stop">■ Ferma</button>':'<button data-act="crono-start">▶ Avvia</button>'}</div>
+   <p class="note" style="margin:6px 0 0">${cr?`Avviato alle ${new Date(cr.start).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}. Puoi chiudere l’app: il tempo continua a contare.`:'Avvialo quando inizi (es. sopralluogo): fermandolo, le ore vengono inserite qui sotto.'}</p></div>`:''}
+  <div class="card" id="f"><h2>${o?'Modifica registrazione':'Registra ore'}</h2>
+   <label><span>Cerca commessa</span><input id="fCerca" type="search" placeholder="codice, nome o cliente" autocomplete="off"></label>
+   <label><span>Commessa</span><select id="fComm">${opzCommesse(v.prevId)}</select></label>
+   ${v.cod && !v.prevId ? `<p class="note">Commessa indicata a mano: <b>${esc(v.cod)}</b></p>`:''}
+   <div class="row"><label><span>${intv?'Dal':'Data'}</span><input id="fData" type="date" value="${esc(v.data||today())}"></label>${intv?`<label><span>Al</span><input id="fFine" type="date" value="${esc(v.dataFine||'')}"></label>`:''}</div>
+   <div class="toggle"><input type="checkbox" id="fInt"${intv?' checked':''}><label for="fInt" style="margin:0">Più giorni (intervallo di date)</label></div>
+   ${intv?`<label><span>Distribuzione delle ore</span><select id="fDistr"><option value="lav"${v.distr!=='tutti'?' selected':''}>giorni lavorativi (lun–ven, esclusi festivi)</option><option value="tutti"${v.distr==='tutti'?' selected':''}>tutti i giorni</option></select></label>`:''}
+   <div class="row"><label><span>${intv?'Ore totali':'Ore'}</span><input id="fH" type="number" inputmode="numeric" min="0" max="${intv?9999:24}" step="1" value="${v.ore?h:''}" placeholder="0"></label>
+    <label><span>Minuti</span><select id="fM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(x=>`<option value="${x}"${x===Math.round(mi/5)*5%60?' selected':''}>${pad(x)}</option>`).join('')}</select></label></div>
+   <div class="chips"><button data-add="15">+15 min</button><button data-add="30">+30 min</button><button data-add="60">+1 h</button><button data-add="0">azzera</button></div>
+   <div id="fInfo"></div>
+   <label><span>Tipologia di attività</span><select id="fTipo"><option value="">automatica dalla descrizione</option>${tipi().map(t=>`<option${t===v.tipo?' selected':''}>${esc(t)}</option>`).join('')}</select></label>
+   <label><span>Attività svolta</span><textarea id="fDesc" placeholder="es. sopralluogo in cantiere, rilievo piano terra">${esc(v.desc||'')}</textarea></label>
+   <p class="err" id="fErr"></p>
+   <button class="pri big" data-act="salva">${o?'Salva modifiche':'Registra ore'}</button>
+   ${o?'<div class="row" style="margin-top:8px"><button data-act="annulla-mod">Annulla</button><button class="danger" data-act="elimina" data-id="'+esc(o.id)+'">Elimina</button></div>':''}
+  </div>`; }
+function leggiForm(){ const g=id=>$(id)?.value||''; const intv=$('#fInt')?.checked; const ore=(+g('#fH')||0)+(+g('#fM')||0)/60;
+  return {intv:!!intv, prevId:g('#fComm'), data:g('#fData'), dataFine:intv?g('#fFine'):'', distr:intv?(g('#fDistr')||'lav'):'', ore:Math.round(ore*10000)/10000, tipo:g('#fTipo'), desc:g('#fDesc').trim()}; }
+function aggInfo(){ const v=leggiForm(); const el=$('#fInfo'); if(!el) return; const e=v.dataFine?oreErr({...v, prevId:v.prevId||'x'}):'';
+  if(!v.dataFine || v.dataFine===v.data){ el.innerHTML=''; return; } if(e){ el.innerHTML=`<p class="err">${esc(e)}</p>`; return; }
+  const G=giorni(v.data,v.dataFine,v.distr); el.innerHTML=`<div class="info">Dal ${fdate(v.data)} al ${fdate(v.dataFine)}: ${ggLbl(G.length, v.distr==='tutti'||!G.every(feriale))}${v.ore>0?` · circa <b>${hm(v.ore/G.length)} h al giorno</b>`:''}</div>`; }
+function initForm(){
+  const f=$('#f'); if(!f) return;
+  f.addEventListener('input', e=>{ if(e.target.id==='fCerca'){ const q=norm(e.target.value); const s=$('#fComm'); const L=commesse().filter(c=>!q || norm([c.cod,c.ogg,c.cli].join(' ')).includes(q));
+      const cur=s.value; s.innerHTML=q?`<option value="">${L.length?'— '+L.length+' commesse trovate —':'nessuna commessa trovata'}</option>${L.map(c=>`<option value="${esc(c.id)}">${esc(c.cod)}${c.ogg?' – '+esc(c.ogg):''}</option>`).join('')}`:opzCommesse(cur);
+      if(L.length===1) s.value=L[0].id; else if(L.some(c=>c.id===cur)) s.value=cur; return; }
+    FORM={...leggiForm()}; aggInfo(); });
+  f.addEventListener('change', e=>{ if(e.target.id==='fInt'){ FORM={...leggiForm()}; if(FORM.intv){ FORM.dataFine=FORM.dataFine||FORM.data; FORM.distr=FORM.distr||'lav'; } else { FORM.dataFine=''; FORM.distr=''; } render(); return; }
+    FORM={...leggiForm()}; aggInfo(); });
+  f.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', ()=>{ const v=leggiForm(); let m=Math.round(v.ore*60); const a=+b.dataset.add; m = a ? m+a : 0; $('#fH').value=m?Math.floor(m/60):''; $('#fM').value=String(Math.round((m%60)/5)*5%60); FORM={...leggiForm()}; aggInfo(); }));
+  aggInfo(); tickCrono();
+}
+function gruppi(L){ const G={}; L.forEach(o=>{ const k=o.data.slice(0,7); (G[k]=G[k]||[]).push(o); }); return Object.entries(G).sort((a,b)=>b[0].localeCompare(a[0])); }
+const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+function vElenco(){ const L=[...ST.ore].sort((a,b)=>(b.data+b.creato).localeCompare(a.data+a.creato));
+  if(!L.length) return `<div class="card empty">Nessuna ora registrata su questo telefono.<br><br><button class="pri" data-tab="nuova">+ Registra ore</button></div>`;
+  return gruppi(L).map(([k,G])=>`<div class="card"><h2>${MESI[+k.slice(5)-1]} ${k.slice(0,4)}</h2><div class="list">${G.map(o=>{ const c=comm(o.prevId); const intv=o.dataFine&&o.dataFine!==o.data; const st=!o.inviata?'<span class="pill wait">da inviare</span>':o.mod>o.inviata?'<span class="pill wait">modificata, da reinviare</span>':'<span class="pill ok">inviata '+fdate(o.inviata.slice(0,10))+'</span>';
+    return `<div class="it"><div class="g"><div class="t">${esc(c?c.cod:(o.cod||'(commessa non più in elenco)'))}${c?.ogg?` <span class="note">– ${esc(c.ogg)}</span>`:''}</div>
+     <div class="d">${intv?`dal ${fdate(o.data)} al ${fdate(o.dataFine)}`:fdate(o.data)}${o.tipo?' · '+esc(o.tipo):''}${o.desc?' · '+esc(o.desc):''}</div><div style="margin-top:4px">${st}</div></div>
+     <div style="text-align:right"><div class="h">${hm(o.ore)} h</div><button class="sm" data-act="modifica" data-id="${esc(o.id)}" style="margin-top:6px">Modifica</button></div></div>`; }).join('')}</div>
+     <div class="sum"><span>Totale del mese</span><span>${hm(G.reduce((a,o)=>a+o.ore,0))} h</span></div></div>`).join(''); }
+function vInvia(){ const L=daInviare(); const tot=L.reduce((a,o)=>a+o.ore,0); const canShare=!!(navigator.canShare && navigator.canShare({files:[new File(['x'],'t.txt',{type:'text/plain'})]}));
+  return `<div class="card"><h2>Invia ad ArcFlow</h2>
+   ${L.length?`<p><b>${L.length}</b> ${L.length===1?'registrazione':'registrazioni'} da inviare · <b>${hm(tot)} h</b></p>`:'<p class="note">Nessuna registrazione da inviare.</p>'}
+   <ol class="steps"><li>Premi <b>${canShare?'Invia a pCloud':'Scarica il file'}</b>.</li>
+   <li>${canShare?'Scegli l’app <b>pCloud</b> e salva il file nella cartella':'Carica il file scaricato con l’app pCloud nella cartella'} <code>GESTIONALE/mobile</code>.</li>
+   <li>ArcFlow sul PC importa le ore da solo appena pCloud ha sincronizzato il file (le ore già importate non vengono duplicate).</li></ol>
+   <button class="pri big" data-act="invia"${L.length?'':' disabled'}>${canShare?'⇪ Invia a pCloud':'⬇ Scarica il file'}</button>
+   ${ST.ore.some(o=>o.inviata)?`<button class="big" style="margin-top:8px" data-act="reinvia">Reinvia tutte le registrazioni (${ST.ore.length})</button>`:''}
+   ${ST.ultimoInvio?`<p class="note" style="margin-top:10px">Ultimo invio: ${new Date(ST.ultimoInvio).toLocaleString('it-IT')}</p>`:''}</div>
+   <div class="card"><h2>Pulizia</h2><p class="note">Le registrazioni inviate da più di 60 giorni vengono tolte dal telefono automaticamente (restano in ArcFlow).</p>
+   <button data-act="pulisci"${ST.ore.some(o=>o.inviata && !(o.mod>o.inviata))?'':' disabled'}>Togli ora le registrazioni già inviate</button></div>`; }
+function vImpo(){ const E=ST.elenco; const r=risorsa();
+  return `<div class="card"><h2>Elenco commesse</h2>${E?`<p>${esc(E.studio||'')}<br><span class="note">${commesse().length} commesse · aggiornato da ArcFlow il ${new Date(E.generato).toLocaleString('it-IT')}</span></p>`:'<p class="note">Nessun elenco caricato.</p>'}
+   <button class="pri big" data-act="carica">${E?'Aggiorna elenco commesse':'Carica elenco commesse'}</button>
+   <p class="note" style="margin-top:8px">File <code>arcflow_commesse_mobile.json</code> nella cartella <code>GESTIONALE/mobile</code> di pCloud (aggiornato da ArcFlow a ogni salvataggio).</p></div>
+   ${E?`<div class="card"><h2>Chi registra le ore</h2>${E.risorsaFissa?`<p><b>${esc(r?.nome||'')}</b><br><span class="note">Indicata nel file creato da ArcFlow.</span></p>`:`<label><span>Risorsa</span><select id="iRis">${risorse().map(x=>`<option value="${esc(x.id)}"${r&&x.id===r.id?' selected':''}>${esc(x.nome)}</option>`).join('')}</select></label>`}</div>`:''}
+   <div class="card"><h2>Come installare l’app</h2><p class="note">In Chrome: menu ⋮ › <b>Installa app</b> (o “Aggiungi a schermata Home”). L’app funziona anche senza connessione; i dati restano su questo telefono.</p>
+   <p class="note">Versione ${VER}</p></div>`; }
+
+// ---------------- cronometro ----------------
+function tickCrono(){ clearInterval(tickCrono.t); const el=$('#cronoT'); if(!ST.crono || !el) return; const up=()=>{ const s=Math.max(0,Math.floor((Date.now()-ST.crono.start)/1000)); el.textContent=`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`; }; up(); tickCrono.t=setInterval(up,1000); }
+
+// ---------------- azioni ----------------
+document.addEventListener('click', async e=>{
+  const t=e.target.closest('[data-tab],[data-act]'); if(!t) return;
+  if(t.dataset.tab){ if(TAB==='nuova' && !EDIT) FORM=$('#f')?leggiForm():FORM; TAB=t.dataset.tab; if(TAB!=='nuova') EDIT=null; render(); scrollTo(0,0); return; }
+  const a=t.dataset.act;
+  if(a==='carica'){ $('#fileCommesse').value=''; $('#fileCommesse').click(); }
+  if(a==='crono-start'){ ST.crono={start:Date.now()}; salva(); render(); }
+  if(a==='crono-stop'){ const min=Math.max(5, Math.ceil((Date.now()-ST.crono.start)/60000/5)*5); const d=new Date(ST.crono.start); ST.crono=null; salva();
+    FORM={...(FORM||{}), ...($('#f')?leggiForm():{}), data:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, dataFine:'', ore:min/60}; render(); toast(`Tempo registrato: ${hm(min/60)} h (arrotondato ai 5 minuti). Completa e premi “Registra ore”.`,5000); }
+  if(a==='salva'){ const v=leggiForm(); const err=oreErr(v); if(err){ $('#fErr').textContent=err; return; }
+    if(!v.dataFine || v.dataFine===v.data){ v.dataFine=''; v.distr=''; } delete v.intv;
+    const r=risorsa(); const now=new Date().toISOString();
+    if(EDIT){ const o=ST.ore.find(x=>x.id===EDIT); Object.assign(o, v, {mod:now}); EDIT=null; TAB='elenco'; toast(o.inviata?'Modifica salvata: ricordati di reinviare':'Modifica salvata'); }
+    else { const c=comm(v.prevId); ST.ore.push({id:uid(), ...v, cod:c?.cod||'', collId:r?.id??'', risNome:r?.nome||'', creato:now, mod:now, inviata:''}); FORM=null; toast(`Registrate ${hm(v.ore)} h su ${c?.cod||''}`); }
+    ST.recenti=[v.prevId, ...(ST.recenti||[]).filter(x=>x!==v.prevId)].slice(0,5); salva(); render(); scrollTo(0,0); }
+  if(a==='modifica'){ EDIT=t.dataset.id; TAB='nuova'; render(); scrollTo(0,0); }
+  if(a==='annulla-mod'){ EDIT=null; TAB='elenco'; render(); }
+  if(a==='elimina'){ const o=ST.ore.find(x=>x.id===t.dataset.id); if(!o) return;
+    const ok=await dialogo(`<h2>Eliminare la registrazione?</h2><p>${hm(o.ore)} h · ${fdate(o.data)}</p>${o.inviata?'<p class="err">È già stata inviata ad ArcFlow: eliminala anche dal foglio ore sul PC.</p>':''}`, [['Annulla',false],['Elimina',true,'pri']]);
+    if(ok){ ST.ore=ST.ore.filter(x=>x.id!==o.id); EDIT=null; TAB='elenco'; salva(); render(); } }
+  if(a==='invia') await invia(daInviare());
+  if(a==='reinvia') await invia(ST.ore);
+  if(a==='pulisci'){ const n=ST.ore.filter(o=>o.inviata && !(o.mod>o.inviata)).length; const ok=await dialogo(`<h2>Togliere ${n} registrazioni già inviate?</h2><p class="note">Restano nel foglio ore di ArcFlow.</p>`, [['Annulla',false],['Togli',true,'pri']]);
+    if(ok){ ST.ore=ST.ore.filter(o=>!o.inviata || o.mod>o.inviata); salva(); render(); } }
+});
+document.addEventListener('change', e=>{ if(e.target.id==='iRis'){ const x=risorse().find(r=>r.id===e.target.value); if(x){ ST.cfg.risorsa={id:x.id, nome:x.nome}; salva(); render(); toast('Le nuove ore saranno intestate a '+x.nome); } } });
+
+$('#fileCommesse').addEventListener('change', async e=>{ const f=e.target.files?.[0]; if(!f) return; let j;
+  try{ j=JSON.parse(await f.text()); }catch(err){ toast('File non valido: scegli arcflow_commesse_mobile.json',5000); return; }
+  if(j?.tipo!=='arcflow-mobile-commesse' || !Array.isArray(j.commesse)){ toast('Questo file non è l’elenco commesse di ArcFlow',5000); return; }
+  const prima=!ST.elenco; ST.elenco={studio:j.studio||'', generato:j.generato||new Date().toISOString(), commesse:j.commesse, risorse:j.risorse||[], tipologie:j.tipologie||[], risorsaFissa:j.risorsaFissa??null};
+  if(j.risorsaFissa!=null){ const x=(j.risorse||[]).find(r=>r.id===j.risorsaFissa); if(x) ST.cfg.risorsa={id:x.id,nome:x.nome}; }
+  else if(!ST.cfg.risorsa || !(j.risorse||[]).some(r=>r.id===ST.cfg.risorsa.id)){ ST.cfg.risorsa=null;
+    if((j.risorse||[]).length===1) ST.cfg.risorsa={...j.risorse[0]};
+    else { const scelta=await dialogo(`<h2>Chi registra le ore?</h2><p class="note">Le ore inserite da questo telefono saranno intestate a:</p>${(j.risorse||[]).map((r,i)=>`<label class="toggle"><input type="radio" name="ris" value="${i}"${i===0?' checked':''}> ${esc(r.nome)}</label>`).join('')}`, [['Conferma','ok','pri']]);
+      const i=+(document.querySelector('[name=ris]:checked')?.value||0); ST.cfg.risorsa={...(j.risorse[i]||j.risorse[0])}; } }
+  salva(); TAB=prima?'nuova':TAB; render(); toast(`Elenco caricato: ${j.commesse.length} commesse`); });
+
+async function invia(L){ if(!L.length) return; const r=risorsa(); const now=new Date(); const stamp=`${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const slug=norm(r?.nome||'telefono').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,30)||'telefono';
+  const nome=`ore_mobile_${slug}_${stamp}.txt`;
+  const dati={tipo:'arcflow-mobile-ore', v:1, app:'ArcFlow Ore '+VER, esportato:now.toISOString(), risorsa:r, studio:ST.elenco?.studio||'',
+    ore:L.map(o=>({id:o.id, prevId:o.prevId, cod:o.cod||comm(o.prevId)?.cod||'', data:o.data, dataFine:o.dataFine||'', distr:o.distr||'', ore:o.ore, tipo:o.tipo||'', desc:o.desc||'', collId:o.collId??'', risNome:o.risNome||'', creato:o.creato, mod:o.mod}))};
+  const file=new File([JSON.stringify(dati,null,1)], nome, {type:'text/plain'});
+  let fatto=false;
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'Ore per ArcFlow', text:'Salva il file nella cartella GESTIONALE/mobile di pCloud'}); fatto=true; }
+    catch(err){ if(err && err.name==='AbortError'){ toast('Invio annullato: le ore restano da inviare'); return; } }
+  }
+  if(!fatto){ const u=URL.createObjectURL(file); const a=document.createElement('a'); a.href=u; a.download=nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),5000);
+    const ok=await dialogo(`<h2>File scaricato</h2><p>Caricalo con l’app pCloud nella cartella <code>GESTIONALE/mobile</code>.</p><p class="note">${esc(nome)}</p><p>Segnare le registrazioni come inviate?</p>`, [['Non ancora',false],['Sì, inviate',true,'pri']]); if(!ok) return; fatto=true; }
+  const ts=now.toISOString(); const ids=new Set(L.map(o=>o.id)); ST.ore.forEach(o=>{ if(ids.has(o.id)) o.inviata=ts; }); ST.ultimoInvio=ts; salva(); render();
+  toast(`${L.length} ${L.length===1?'registrazione inviata':'registrazioni inviate'}: ArcFlow le importerà appena pCloud sincronizza.`,5000); }
+
+// pulizia automatica delle registrazioni inviate da più di 60 giorni
+(()=>{ const lim=new Date(Date.now()-60*864e5).toISOString(); const n=ST.ore.length; ST.ore=ST.ore.filter(o=>!(o.inviata && !(o.mod>o.inviata) && o.inviata<lim)); if(ST.ore.length!==n) salva(); })();
+// cronometro avviato senza elenco: niente da fare; al ritorno in primo piano si aggiorna il tempo
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tickCrono(); });
+render();
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
