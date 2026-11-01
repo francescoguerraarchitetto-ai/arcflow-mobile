@@ -33,6 +33,8 @@ button.pri{ background:var(--acc); border-color:var(--acc); color:#1d2118; font-
 button.big{ width:100%; font-size:17px; min-height:52px; }
 button.danger{ color:var(--bad); }
 button.sm{ min-height:36px; padding:5px 10px; font-size:14px; }
+a.btn{ display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:10px; border:1px solid var(--acc2); color:var(--acc2); background:var(--card); padding:9px 14px; text-decoration:none; font-weight:600; }
+.geo{ margin:0 0 12px; }
 .chips{ display:flex; gap:6px; flex-wrap:wrap; margin:-2px 0 10px; } .chips button{ min-height:36px; padding:4px 12px; border-radius:99px; font-size:14px; }
 .note{ color:var(--mut); font-size:13.5px; }
 .err{ color:var(--bad); font-size:14px; }
@@ -73,7 +75,7 @@ code{ background:var(--accbg); padding:0 4px; border-radius:4px; overflow-wrap:a
 'use strict';
 /* ArcFlow Ore – app per il telefono (PWA). I dati restano sul telefono: elenco commesse caricato dal file creato da ArcFlow,
    ore inviate ad ArcFlow con un file salvato nella cartella GESTIONALE/mobile di pCloud. */
-const VER='1.0.0';
+const VER='1.1.0';
 const LS='arcflowMobile_v1';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -98,7 +100,7 @@ let ST=carica();
 function carica(){ try{ const s=JSON.parse(localStorage.getItem(LS)||'null'); if(s && Array.isArray(s.ore)) return s; }catch(e){} return {cfg:{}, elenco:null, ore:[], crono:null, recenti:[]}; }
 function salva(){ try{ localStorage.setItem(LS, JSON.stringify(ST)); return true; }catch(e){ toast('Memoria del telefono piena: invia e pulisci le ore già inviate.'); return false; } }
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
-let TAB='nuova', EDIT=null, FORM=null;
+let TAB='nuova', EDIT=null, FORM=null, FGEO=null;   // FGEO: posizione GPS della registrazione in corso
 const commesse=()=>ST.elenco?.commesse||[];
 const comm=id=>commesse().find(c=>c.id===id);
 const tipi=()=>ST.elenco?.tipologie?.length?ST.elenco.tipologie:TIPI_DEF;
@@ -135,7 +137,7 @@ function opzCommesse(sel){ const rec=(ST.recenti||[]).map(comm).filter(Boolean);
   const o=c=>`<option value="${esc(c.id)}"${c.id===sel?' selected':''}>${esc(c.cod)}${c.ogg?' – '+esc(c.ogg):''}</option>`;
   return `<option value="">— scegli la commessa —</option>${rec.length?`<optgroup label="Usate di recente">${rec.map(o).join('')}</optgroup><optgroup label="Tutte le commesse">`:''}${resto.map(o).join('')}${rec.length?'</optgroup>':''}`; }
 function vNuova(){ const o=EDIT ? ST.ore.find(x=>x.id===EDIT) : null; const v=o||FORM||{data:today(), distr:'lav'}; const h=Math.floor((+v.ore||0)), mi=Math.round(((+v.ore||0)-h)*60);
-  const cr=ST.crono; const intv=!!(v.intv || (v.dataFine && v.dataFine!==v.data));
+  FGEO=v.geo||null; const cr=ST.crono; const intv=!!(v.intv || (v.dataFine && v.dataFine!==v.data));
   return `${!o?`<div class="card"><h2>Cronometro</h2><div class="crono"><b id="cronoT">${cr?'00:00:00':'—'}</b>${cr?'<button class="pri" data-act="crono-stop">■ Ferma</button>':'<button data-act="crono-start">▶ Avvia</button>'}</div>
    <p class="note" style="margin:6px 0 0">${cr?`Avviato alle ${new Date(cr.start).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}. Puoi chiudere l’app: il tempo continua a contare.`:'Avvialo quando inizi (es. sopralluogo): fermandolo, le ore vengono inserite qui sotto.'}</p></div>`:''}
   <div class="card" id="f"><h2>${o?'Modifica registrazione':'Registra ore'}</h2>
@@ -149,6 +151,7 @@ function vNuova(){ const o=EDIT ? ST.ore.find(x=>x.id===EDIT) : null; const v=o|
     <label><span>Minuti</span><select id="fM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(x=>`<option value="${x}"${x===Math.round(mi/5)*5%60?' selected':''}>${pad(x)}</option>`).join('')}</select></label></div>
    <div class="chips"><button data-add="15">+15 min</button><button data-add="30">+30 min</button><button data-add="60">+1 h</button><button data-add="0">azzera</button></div>
    <div id="fInfo"></div>
+   <div id="fGeo">${geoBox(v.prevId)}</div>
    <label><span>Tipologia di attività</span><select id="fTipo"><option value="">automatica dalla descrizione</option>${tipi().map(t=>`<option${t===v.tipo?' selected':''}>${esc(t)}</option>`).join('')}</select></label>
    <label><span>Attività svolta</span><textarea id="fDesc" placeholder="es. sopralluogo in cantiere, rilievo piano terra">${esc(v.desc||'')}</textarea></label>
    <p class="err" id="fErr"></p>
@@ -156,10 +159,19 @@ function vNuova(){ const o=EDIT ? ST.ore.find(x=>x.id===EDIT) : null; const v=o|
    ${o?'<div class="row" style="margin-top:8px"><button data-act="annulla-mod">Annulla</button><button class="danger" data-act="elimina" data-id="'+esc(o.id)+'">Elimina</button></div>':''}
   </div>`; }
 function leggiForm(){ const g=id=>$(id)?.value||''; const intv=$('#fInt')?.checked; const ore=(+g('#fH')||0)+(+g('#fM')||0)/60;
-  return {intv:!!intv, prevId:g('#fComm'), data:g('#fData'), dataFine:intv?g('#fFine'):'', distr:intv?(g('#fDistr')||'lav'):'', ore:Math.round(ore*10000)/10000, tipo:g('#fTipo'), desc:g('#fDesc').trim()}; }
-function aggInfo(){ const v=leggiForm(); const el=$('#fInfo'); if(!el) return; const e=v.dataFine?oreErr({...v, prevId:v.prevId||'x'}):'';
+  return {intv:!!intv, prevId:g('#fComm'), data:g('#fData'), dataFine:intv?g('#fFine'):'', distr:intv?(g('#fDistr')||'lav'):'', ore:Math.round(ore*10000)/10000, tipo:g('#fTipo'), desc:g('#fDesc').trim(), geo:FGEO||undefined}; }
+function aggInfo(){ const v=leggiForm(); const gb=$('#fGeo'); if(gb) gb.innerHTML=geoBox(v.prevId); const el=$('#fInfo'); if(!el) return; const e=v.dataFine?oreErr({...v, prevId:v.prevId||'x'}):'';
   if(!v.dataFine || v.dataFine===v.data){ el.innerHTML=''; return; } if(e){ el.innerHTML=`<p class="err">${esc(e)}</p>`; return; }
   const G=giorni(v.data,v.dataFine,v.distr); el.innerHTML=`<div class="info">Dal ${fdate(v.data)} al ${fdate(v.dataFine)}: ${ggLbl(G.length, v.distr==='tutti'||!G.every(feriale))}${v.ore>0?` · circa <b>${hm(v.ore/G.length)} h al giorno</b>`:''}</div>`; }
+// ---- posizione GPS (sopralluogo) e navigazione verso l'immobile
+const geoTxt = g => `${(+g.lat).toFixed(6)}, ${(+g.lon).toFixed(6)}`;
+function geoBox(prevId){ const c=comm(prevId); const cg=c?.geo;
+  return `<div class="geo">${FGEO?`<p class="info" style="margin:0 0 6px">📍 Posizione rilevata: <b>${geoTxt(FGEO)}</b>${FGEO.acc?` (±${Math.round(FGEO.acc)} m)`:''} <button type="button" class="sm" data-act="geo-togli">togli</button></p>`:''}
+   <div class="row"><button type="button" data-act="geo-gps">${FGEO?'📍 Rileva di nuovo':'📍 Rileva posizione (GPS)'}</button>${cg?`<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${cg.lat},${cg.lon}" target="_blank" rel="noopener">🧭 Naviga all’immobile</a>`:''}</div>
+   <p class="note" style="margin:4px 0 0">${cg?'':'L’immobile di questa commessa non ha ancora un punto sulla mappa: la posizione rilevata qui lo fisserà in ArcFlow. '}La posizione viene inviata con le ore.</p></div>`; }
+function geoRileva(){ if(!navigator.geolocation){ toast('Questo telefono non fornisce la posizione',5000); return; } toast('Rilevo la posizione…',3000);
+  navigator.geolocation.getCurrentPosition(p=>{ FGEO={lat:Math.round(p.coords.latitude*1e6)/1e6, lon:Math.round(p.coords.longitude*1e6)/1e6, acc:Math.round(p.coords.accuracy||0)}; FORM=EDIT?FORM:{...leggiForm()}; aggInfo(); toast(`Posizione rilevata (±${FGEO.acc} m)`); },
+    e=>toast(e.code===1?'Permesso di localizzazione negato: consentilo nelle impostazioni del browser':'Posizione non disponibile: riprova all’aperto',6000), {enableHighAccuracy:true, timeout:20000, maximumAge:0}); }
 function initForm(){
   const f=$('#f'); if(!f) return;
   f.addEventListener('input', e=>{ if(e.target.id==='fCerca'){ const q=norm(e.target.value); const s=$('#fComm'); const L=commesse().filter(c=>!q || norm([c.cod,c.ogg,c.cli].join(' ')).includes(q));
@@ -207,15 +219,17 @@ document.addEventListener('click', async e=>{
   const t=e.target.closest('[data-tab],[data-act]'); if(!t) return;
   if(t.dataset.tab){ if(TAB==='nuova' && !EDIT) FORM=$('#f')?leggiForm():FORM; TAB=t.dataset.tab; if(TAB!=='nuova') EDIT=null; render(); scrollTo(0,0); return; }
   const a=t.dataset.act;
+  if(a==='geo-gps') geoRileva();
+  if(a==='geo-togli'){ FGEO=null; if(!EDIT) FORM={...leggiForm()}; aggInfo(); }
   if(a==='carica'){ $('#fileCommesse').value=''; $('#fileCommesse').click(); }
   if(a==='crono-start'){ ST.crono={start:Date.now()}; salva(); render(); }
   if(a==='crono-stop'){ const min=Math.max(5, Math.ceil((Date.now()-ST.crono.start)/60000/5)*5); const d=new Date(ST.crono.start); ST.crono=null; salva();
     FORM={...(FORM||{}), ...($('#f')?leggiForm():{}), data:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, dataFine:'', ore:min/60}; render(); toast(`Tempo registrato: ${hm(min/60)} h (arrotondato ai 5 minuti). Completa e premi “Registra ore”.`,5000); }
   if(a==='salva'){ const v=leggiForm(); const err=oreErr(v); if(err){ $('#fErr').textContent=err; return; }
-    if(!v.dataFine || v.dataFine===v.data){ v.dataFine=''; v.distr=''; } delete v.intv;
+    if(!v.dataFine || v.dataFine===v.data){ v.dataFine=''; v.distr=''; } delete v.intv; if(!v.geo) delete v.geo;
     const r=risorsa(); const now=new Date().toISOString();
-    if(EDIT){ const o=ST.ore.find(x=>x.id===EDIT); Object.assign(o, v, {mod:now}); EDIT=null; TAB='elenco'; toast(o.inviata?'Modifica salvata: ricordati di reinviare':'Modifica salvata'); }
-    else { const c=comm(v.prevId); ST.ore.push({id:uid(), ...v, cod:c?.cod||'', collId:r?.id??'', risNome:r?.nome||'', creato:now, mod:now, inviata:''}); FORM=null; toast(`Registrate ${hm(v.ore)} h su ${c?.cod||''}`); }
+    if(EDIT){ const o=ST.ore.find(x=>x.id===EDIT); if(!v.geo) delete o.geo; Object.assign(o, v, {mod:now}); EDIT=null; TAB='elenco'; toast(o.inviata?'Modifica salvata: ricordati di reinviare':'Modifica salvata'); }
+    else { const c=comm(v.prevId); ST.ore.push({id:uid(), ...v, cod:c?.cod||'', collId:r?.id??'', risNome:r?.nome||'', creato:now, mod:now, inviata:''}); FORM=null; FGEO=null; toast(`Registrate ${hm(v.ore)} h su ${c?.cod||''}`); }
     ST.recenti=[v.prevId, ...(ST.recenti||[]).filter(x=>x!==v.prevId)].slice(0,5); salva(); render(); scrollTo(0,0); }
   if(a==='modifica'){ EDIT=t.dataset.id; TAB='nuova'; render(); scrollTo(0,0); }
   if(a==='annulla-mod'){ EDIT=null; TAB='elenco'; render(); }
@@ -244,7 +258,7 @@ async function invia(L){ if(!L.length) return; const r=risorsa(); const now=new 
   const slug=norm(r?.nome||'telefono').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,30)||'telefono';
   const nome=`ore_mobile_${slug}_${stamp}.txt`;
   const dati={tipo:'arcflow-mobile-ore', v:1, app:'ArcFlow Ore '+VER, esportato:now.toISOString(), risorsa:r, studio:ST.elenco?.studio||'',
-    ore:L.map(o=>({id:o.id, prevId:o.prevId, cod:o.cod||comm(o.prevId)?.cod||'', data:o.data, dataFine:o.dataFine||'', distr:o.distr||'', ore:o.ore, tipo:o.tipo||'', desc:o.desc||'', collId:o.collId??'', risNome:o.risNome||'', creato:o.creato, mod:o.mod}))};
+    ore:L.map(o=>({id:o.id, prevId:o.prevId, cod:o.cod||comm(o.prevId)?.cod||'', data:o.data, dataFine:o.dataFine||'', distr:o.distr||'', ore:o.ore, tipo:o.tipo||'', desc:o.desc||'', collId:o.collId??'', risNome:o.risNome||'', creato:o.creato, mod:o.mod, ...(o.geo?{geo:o.geo}:{})}))};
   const file=new File([JSON.stringify(dati,null,1)], nome, {type:'text/plain'});
   let fatto=false;
   if(navigator.canShare && navigator.canShare({files:[file]})){

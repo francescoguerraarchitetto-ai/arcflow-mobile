@@ -1,4 +1,4 @@
-﻿ArcFlow Ore – app per il telefono (Android) · versione 1.0.0
+﻿ArcFlow Ore – app per il telefono (Android) · versione 1.1.0
 Studio FGA – Francesco Guerra Architetto
 
 Registra il foglio ore fuori studio, anche senza connessione, e invia le ore ad ArcFlow tramite pCloud.
@@ -30,6 +30,11 @@ C) USO
    ArcFlow sul PC importa le ore entro un minuto da quando pCloud ha sincronizzato il file (notifica sul PC);
    le ore già importate non vengono duplicate; una registrazione modificata dopo l'invio si reinvia e si aggiorna.
  - Quando in ArcFlow cambiano le commesse, ricarica l'elenco: Impostazioni › Aggiorna elenco commesse.
+ - Posizione (novità 1.1.0): durante un sopralluogo premi "📍 Rileva posizione (GPS)" (la prima volta consenti
+   l'accesso alla posizione). La posizione viene inviata con le ore: se l'immobile della commessa non ha ancora un punto
+   sulla mappa, ArcFlow lo fissa da solo (richiede ArcFlow R41 o successiva; le versioni precedenti la ignorano).
+ - "🧭 Naviga all'immobile" apre Google Maps con il percorso, se la commessa ha un punto sulla mappa in ArcFlow
+   (ricarica l'elenco commesse dopo aver messo il pin).
  - Le ore inviate da più di 60 giorni vengono tolte dal telefono (restano in ArcFlow).
 
 D) COLLABORATORI
@@ -39,3 +44,5 @@ D) COLLABORATORI
 
 E) AGGIORNAMENTI DELL'APP
  Carica i nuovi file nello stesso repository GitHub: il telefono si aggiorna da solo alla prima apertura con rete.
+ Dalla 1.0.0 alla 1.1.0 bastano index.html, sw.js e LEGGIMI.txt: nel repository › Add file › Upload files ›
+ trascinali (sostituiscono i vecchi) › Commit changes. Sul telefono chiudi e riapri l'app due volte.
